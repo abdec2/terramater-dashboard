@@ -19,6 +19,8 @@
     "react-apexcharts": "1.4.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.4.2",
+    "sweetalert2": "^11.6.16",
+    "sweetalert2-react-content": "^5.0.7",
     "wagmi": "^0.6.8"
   },
   "devDependencies": {

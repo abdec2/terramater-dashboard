@@ -15,6 +15,7 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@material-tailwind/react";
 import { MaterialTailwindControllerProvider } from "@/context";
+import { GlobalProvider } from './context/globalContext/GlobalContext'
 
 import '@rainbow-me/rainbowkit/styles.css';
 import {
@@ -23,6 +24,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
+import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 import "../public/css/tailwind.css";
 
@@ -30,12 +32,13 @@ import "../public/css/tailwind.css";
 const { chains, provider } = configureChains(
   [polygonMumbai],
   [
+    alchemyProvider({ apiKey: import.meta.env.VITE_ALCHEMY_API_KEY }),
     publicProvider()
   ]
 );
 
 const { connectors } = getDefaultWallets({
-  appName: 'My RainbowKit App',
+  appName: 'Terra Mater Dashboard',
   chains
 });
 
@@ -53,7 +56,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <MaterialTailwindControllerProvider>
           <WagmiConfig client={wagmiClient}>
             <RainbowKitProvider chains={chains}>
-              <App />
+              <GlobalProvider>
+                <App />
+              </GlobalProvider>
             </RainbowKitProvider>
           </WagmiConfig>
         </MaterialTailwindControllerProvider>

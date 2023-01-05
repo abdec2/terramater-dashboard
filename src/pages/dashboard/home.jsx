@@ -20,26 +20,135 @@ import {
   projectsTableData,
 } from "@/data";
 import UpdateModal from "./UpdateModal";
-import { useRef } from "react";
+
+import { ethers } from "ethers";
+import { useAccount, useSigner } from 'wagmi'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+import { CONFIG } from "../config/config";
+import token_ci from './../config/token_ci.json'
+import staking_ci from './../config/staking_ci.json'
+import { useContext } from "react";
+import { GlobalContext } from "@/context/globalContext/GlobalContext";
+import { useEffect } from "react";
+import LoadingComponent from "../components/loading";
+
+const MySwal = withReactContent(Swal)
+
 
 export function Home() {
+  const { fetchContractData, state } = useContext(GlobalContext)
+  const [loading, setLoading] = useState(false)
   const [openGoldModal, setOpenGoldModal] = useState(false);
   const [openBitCoinModal, setOpenBitcoinModal] = useState(false);
   const [openMiscModal, setOpenMiscModal] = useState(false);
-  const goldRef = useRef()
-  const btcRef = useRef()
-  const miscRef = useRef()
+  const [goldVal, setGoldVal] = useState('')
+  const [btcVal, setBtcVal] = useState('')
+  const [miscVal, setMiscVal] = useState('')
+  const { address, isConnected } = useAccount()
+  const { data: signer } = useSigner()
+  const { openConnectModal } = useConnectModal()
 
+  console.log(state)
+ 
   const submitGold = async () => {
-    console.log(goldRef.current.value)
+    try {
+      setLoading(true)
+      if(!isConnected) {
+        openConnectModal()
+        return
+      }
+      if(goldVal === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Please enter valid Amount!'
+        })
+        
+        return
+      }
+      const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+      const estimateGas = await contract.estimateGas._setGoldReserves(goldVal)
+      const txOpt = {
+        gasLimit: estimateGas.toString()
+      }
+      const tx = await contract._setGoldReserves(goldVal, txOpt)
+      await tx.wait()
+      console.log(tx)
+      setGoldVal('')
+      fetchContractData()
+      setLoading(false)
+    } catch(e) {
+      setLoading(false)
+      console.log(e)
+    }
   }
 
   const submitBtc = async () => {
-    console.log(btcRef.current.value)
+    try {
+      setLoading(true)
+      if(!isConnected) {
+        openConnectModal()
+        return
+      }
+      if(btcVal === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Please enter valid Amount!'
+        })
+        
+        return
+      }
+      const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+      const estimateGas = await contract.estimateGas._setBitcoinReserves(btcVal)
+      const txOpt = {
+        gasLimit: estimateGas.toString()
+      }
+      const tx = await contract._setBitcoinReserves(btcVal, txOpt)
+      await tx.wait()
+      console.log(tx)
+      setBtcVal('')
+      fetchContractData()
+      setLoading(false)
+    } catch(e) {
+      setLoading(false)
+      console.log(e)
+    }
   }
 
   const submitMisc = async () => {
-    console.log(miscRef.current.value)
+    try {
+      setLoading(true)
+      if(!isConnected) {
+        openConnectModal()
+        return
+      }
+      if(miscVal === '') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Please enter valid Amount!'
+        })
+        
+        return
+      }
+      const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+      const estimateGas = await contract.estimateGas._setMiscReserves(miscVal)
+      const txOpt = {
+        gasLimit: estimateGas.toString()
+      }
+      const tx = await contract._setMiscReserves(miscVal, txOpt)
+      await tx.wait()
+      console.log(tx)
+      setMiscVal('')
+      fetchContractData()
+      setLoading(false)
+    } catch(e) {
+      setLoading(false)
+      console.log(e)
+    }
   }
 
 
@@ -62,12 +171,20 @@ export function Home() {
   }
 
 
+  useEffect(() => {
+    fetchContractData()
+  }, [])
+
+
   return (
     <div className="mt-12">
+      <LoadingComponent />
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-        {statisticsCardsData.map(({ id, icon, title, footer, update, ...rest }) => (
+        {statisticsCardsData.map(({ icon, title, footer, update, id, ...rest }) => (
           <StatisticsCard
             key={title}
+            data={state}
+            id={id}
             {...rest}
             title={title}
             icon={React.createElement(icon, {
@@ -293,9 +410,9 @@ export function Home() {
           </CardBody>
         </Card> */}
       </div>
-      <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} ref={goldRef} on />
-      <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} ref={btcRef} />
-      <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} ref={miscRef} />
+      <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} val={goldVal} setVal={setGoldVal} submit={submitGold} />
+      <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} />
+      <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} />
     </div>
   );
 }
