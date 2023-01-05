@@ -10,8 +10,38 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { useState } from "react";
+import axios from "axios";
+import { CONFIG } from "../config/config";
 
 export function SignIn() {
+  // const [email, setEmail] = useState('')
+  // const [pass, setPass] = useState('')
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      var loginCred = {};
+      formData.forEach((value, key) => {
+        loginCred[key] = value;
+      });
+      console.log(loginCred)
+      
+
+      axios
+        .post(`${CONFIG.BASE_URI}/api/auth/local`, loginCred)
+        .then((response) => {
+          // Handle success.
+          console.log(response)
+        })
+        .catch((error) => {
+          // Handle error.
+          console.log("An error occurred:", error.response);
+        });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <>
@@ -31,31 +61,29 @@ export function SignIn() {
               Sign In
             </Typography>
           </CardHeader>
-          <CardBody className="flex flex-col gap-4">
-            <Input type="email" label="Email" size="lg" />
-            <Input type="password" label="Password" size="lg" />
-            <div className="-ml-2.5">
-              <Checkbox label="Remember Me" />
-            </div>
-          </CardBody>
-          <CardFooter className="pt-0">
-            <Button variant="gradient" fullWidth>
-              Sign In
-            </Button>
-            {/* <Typography variant="small" className="mt-6 flex justify-center">
-              Don't have an account?
-              <Link to="/auth/sign-up">
-                <Typography
-                  as="span"
-                  variant="small"
-                  color="blue"
-                  className="ml-1 font-bold"
-                >
-                  Sign up
-                </Typography>
-              </Link>
-            </Typography> */}
-          </CardFooter>
+          <form onSubmit={handleLogin}>
+            <CardBody className="flex flex-col gap-4">
+              <Input
+                name="identifier"
+                type="text"
+                label="Username"
+                size="lg"
+                required
+              />
+              <Input
+                name="password"
+                type="password"
+                label="Password"
+                size="lg"
+                required
+              />
+            </CardBody>
+            <CardFooter className="pt-0">
+              <Button type="submit" variant="gradient" fullWidth>
+                Sign In
+              </Button>
+            </CardFooter>
+          </form>
         </Card>
       </div>
     </>

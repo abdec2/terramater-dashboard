@@ -23,24 +23,6 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },
-      {
-        icon: <UserCircleIcon {...icon} />,
-        name: "profile",
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        icon: <TableCellsIcon {...icon} />,
-        name: "tables",
-        path: "/tables",
-        element: <Tables />,
-      },
-      {
-        icon: <BellIcon {...icon} />,
-        name: "notifactions",
-        path: "/notifactions",
-        element: <Notifications />,
-      },
     ],
   },
   {
@@ -52,12 +34,6 @@ export const routes = [
         name: "sign in",
         path: "/sign-in",
         element: <SignIn />,
-      },
-      {
-        icon: <UserPlusIcon {...icon} />,
-        name: "sign up",
-        path: "/sign-up",
-        element: <SignUp />,
       },
     ],
   },

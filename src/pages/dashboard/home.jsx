@@ -33,6 +33,7 @@ import { useContext } from "react";
 import { GlobalContext } from "@/context/globalContext/GlobalContext";
 import { useEffect } from "react";
 import LoadingComponent from "../components/loading";
+import { errorMsg, successMsg } from "../helpers/helpers";
 
 const MySwal = withReactContent(Swal)
 
@@ -60,12 +61,7 @@ export function Home() {
         return
       }
       if(goldVal === '') {
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Please enter valid Amount!'
-        })
-        
+        errorMsg('Please enter valid Amount!')
         return
       }
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
@@ -78,6 +74,7 @@ export function Home() {
       console.log(tx)
       setGoldVal('')
       fetchContractData()
+      successMsg('Transaction has been completed successfuly')
       setLoading(false)
     } catch(e) {
       setLoading(false)
@@ -93,12 +90,7 @@ export function Home() {
         return
       }
       if(btcVal === '') {
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Please enter valid Amount!'
-        })
-        
+        errorMsg('Please enter valid Amount!')
         return
       }
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
@@ -111,6 +103,7 @@ export function Home() {
       console.log(tx)
       setBtcVal('')
       fetchContractData()
+      successMsg('Transaction has been completed successfuly')
       setLoading(false)
     } catch(e) {
       setLoading(false)
@@ -126,12 +119,7 @@ export function Home() {
         return
       }
       if(miscVal === '') {
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Please enter valid Amount!'
-        })
-        
+        errorMsg('Please enter valid Amount!')
         return
       }
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
@@ -144,6 +132,7 @@ export function Home() {
       console.log(tx)
       setMiscVal('')
       fetchContractData()
+      successMsg('Transaction has been completed successfuly')
       setLoading(false)
     } catch(e) {
       setLoading(false)
@@ -178,7 +167,7 @@ export function Home() {
 
   return (
     <div className="mt-12">
-      <LoadingComponent />
+      {loading && (<LoadingComponent />)}
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
         {statisticsCardsData.map(({ icon, title, footer, update, id, ...rest }) => (
           <StatisticsCard
@@ -416,10 +405,5 @@ export function Home() {
     </div>
   );
 }
-
-
-
-
-
 
 export default Home;
