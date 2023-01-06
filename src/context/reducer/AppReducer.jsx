@@ -22,6 +22,12 @@ export const AppReducer = (state, action) => {
                 ...state,
                 NaturaPrice: action.payload
             }
+
+        case 'UPDATE_COLLECTIONS':
+            return {
+                ...state,
+                Collections: action.payload
+            }
         default:
             return state;
     };

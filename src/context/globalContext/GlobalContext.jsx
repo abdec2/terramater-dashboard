@@ -10,7 +10,8 @@ const initialState = {
     GoldReserve: null,
     BitcoinReserve: null,
     MiscReserve: null, 
-    NaturaPrice: null
+    NaturaPrice: null,
+    Collections: []
 }
 
 export const GlobalContext = createContext(initialState)
@@ -47,6 +48,13 @@ export const GlobalProvider = ({ children }) => {
         })
     }
 
+    const updateCollections = (collections) => {
+        dispatch({
+            type: 'UPDATE_COLLECTIONS',
+            payload: collections
+        })
+    }
+
     const fetchContractData = async () => {
         const stakingContract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, provider)
         const tokenContract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, provider)
@@ -71,7 +79,8 @@ export const GlobalProvider = ({ children }) => {
                 updateBitcoinReserve,
                 updateMiscReserve,
                 updateNaturaPrice,
-                fetchContractData
+                fetchContractData,
+                updateCollections
             }
         }
         >

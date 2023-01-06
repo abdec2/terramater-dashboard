@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import  auth from './../../auth/auth'
 import {
   Card,
   CardHeader,
@@ -9,42 +10,58 @@ import {
   Button,
   Typography,
 } from "@material-tailwind/react";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import axios from "axios";
 import { CONFIG } from "../config/config";
+import { useState } from "react";
+import LoadingComponent from "../components/loading";
 
 export function SignIn() {
-  // const [email, setEmail] = useState('')
-  // const [pass, setPass] = useState('')
+  const errorMsg = useRef()
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true)
       const formData = new FormData(e.target);
       var loginCred = {};
       formData.forEach((value, key) => {
         loginCred[key] = value;
       });
-      console.log(loginCred)
-      
 
       axios
         .post(`${CONFIG.BASE_URI}/api/auth/local`, loginCred)
         .then((response) => {
           // Handle success.
-          console.log(response)
+          errorMsg.current.style.display = 'none'
+          auth.setToken(response.data.jwt, true)
+          auth.setUserInfo(response.data.user, true)
+          setLoading(false)
+          navigate('/dashboard/home')
         })
         .catch((error) => {
           // Handle error.
+          setLoading(false)
+          errorMsg.current.style.display = 'block'
+          errorMsg.current.innerHTML = error.response.statusText
           console.log("An error occurred:", error.response);
         });
     } catch (e) {
+      setLoading(false)
       console.log(e);
     }
   };
 
+  useEffect(()=> {
+    const isAuth = auth.getToken() !== null;
+    isAuth ? navigate('/') : ''
+  }, [])
+
   return (
     <>
+      {loading && (<LoadingComponent msg='Loading...' />)}
       <img
         src="https://images.unsplash.com/photo-1497294815431-9365093b7331?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80"
         className="absolute inset-0 z-0 h-full w-full object-cover"
@@ -63,6 +80,7 @@ export function SignIn() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardBody className="flex flex-col gap-4">
+              <p ref={errorMsg} className="text-red-900" style={{display: 'none'}}></p>
               <Input
                 name="identifier"
                 type="text"

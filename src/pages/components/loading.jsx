@@ -1,4 +1,4 @@
-const LoadingComponent = () => {
+const LoadingComponent = ({msg}) => {
   return (
     <div className="fixed top-0 left-0 z-50 h-screen w-screen bg-black bg-opacity-75">
       <div className="absolute left-1/2 top-1/2 h-56 w-96 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white">
@@ -21,7 +21,7 @@ const LoadingComponent = () => {
               />
             </svg>
           </div>
-          <div className="mt-2">Waiting for transaction...</div>
+          <div className="mt-2">{msg}</div>
         </div>
       </div>
     </div>

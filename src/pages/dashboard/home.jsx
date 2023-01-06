@@ -9,9 +9,9 @@ import {
   MenuHandler,
   MenuList,
   MenuItem,
-  
+
 } from "@material-tailwind/react";
-import {  
+import {
   EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { StatisticsCard } from "@/widgets/cards";
@@ -22,7 +22,7 @@ import {
 import UpdateModal from "./UpdateModal";
 
 import { ethers } from "ethers";
-import { useAccount, useSigner } from 'wagmi'
+import { useAccount, useProvider, useSigner } from 'wagmi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -34,36 +34,42 @@ import { GlobalContext } from "@/context/globalContext/GlobalContext";
 import { useEffect } from "react";
 import LoadingComponent from "../components/loading";
 import { errorMsg, successMsg } from "../helpers/helpers";
+import axios from "axios";
+import nft_ci from './../config/nft_ci.json'
 
 const MySwal = withReactContent(Swal)
 
 
 export function Home() {
-  const { fetchContractData, state } = useContext(GlobalContext)
+  const { fetchContractData, state, updateCollections } = useContext(GlobalContext)
   const [loading, setLoading] = useState(false)
   const [openGoldModal, setOpenGoldModal] = useState(false);
   const [openBitCoinModal, setOpenBitcoinModal] = useState(false);
   const [openMiscModal, setOpenMiscModal] = useState(false);
+  const [updateMpModal, setUpdateMpModal] = useState(false);
   const [goldVal, setGoldVal] = useState('')
   const [btcVal, setBtcVal] = useState('')
   const [miscVal, setMiscVal] = useState('')
+  const [mpVal, setMpVal] = useState('')
+  const [poolId, setPoolId] = useState('')
   const { address, isConnected } = useAccount()
   const { data: signer } = useSigner()
   const { openConnectModal } = useConnectModal()
+  const provider = useProvider()
 
   console.log(state)
- 
+
   const submitGold = async () => {
     try {
-      setLoading(true)
-      if(!isConnected) {
+      if (!isConnected) {
         openConnectModal()
         return
       }
-      if(goldVal === '') {
+      if (goldVal === '') {
         errorMsg('Please enter valid Amount!')
         return
       }
+      setLoading(true)
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
       const estimateGas = await contract.estimateGas._setGoldReserves(goldVal)
       const txOpt = {
@@ -76,7 +82,7 @@ export function Home() {
       fetchContractData()
       successMsg('Transaction has been completed successfuly')
       setLoading(false)
-    } catch(e) {
+    } catch (e) {
       setLoading(false)
       console.log(e)
     }
@@ -84,15 +90,15 @@ export function Home() {
 
   const submitBtc = async () => {
     try {
-      setLoading(true)
-      if(!isConnected) {
+      if (!isConnected) {
         openConnectModal()
         return
       }
-      if(btcVal === '') {
+      if (btcVal === '') {
         errorMsg('Please enter valid Amount!')
         return
       }
+      setLoading(true)
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
       const estimateGas = await contract.estimateGas._setBitcoinReserves(btcVal)
       const txOpt = {
@@ -105,7 +111,7 @@ export function Home() {
       fetchContractData()
       successMsg('Transaction has been completed successfuly')
       setLoading(false)
-    } catch(e) {
+    } catch (e) {
       setLoading(false)
       console.log(e)
     }
@@ -113,15 +119,16 @@ export function Home() {
 
   const submitMisc = async () => {
     try {
-      setLoading(true)
-      if(!isConnected) {
+      
+      if (!isConnected) {
         openConnectModal()
         return
       }
-      if(miscVal === '') {
+      if (miscVal === '') {
         errorMsg('Please enter valid Amount!')
         return
       }
+      setLoading(true)
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
       const estimateGas = await contract.estimateGas._setMiscReserves(miscVal)
       const txOpt = {
@@ -134,7 +141,39 @@ export function Home() {
       fetchContractData()
       successMsg('Transaction has been completed successfuly')
       setLoading(false)
-    } catch(e) {
+    } catch (e) {
+      setLoading(false)
+      console.log(e)
+    }
+  }
+
+  const submitMp = async () => {
+    try {
+      
+      if (!isConnected) {
+        openConnectModal()
+        return
+      }
+      if (mpVal === '') {
+        errorMsg('Please enter valid Amount!')
+        return
+      }
+      setLoading(true)
+      const contract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, signer)
+      const mpValue = ethers.utils.parseUnits(mpVal, 6)
+      const estimateGas = await contract.estimateGas.set(poolId, mpValue)
+      const txOpt = {
+        gasLimit: estimateGas.toString()
+      }
+      const tx = await contract.set(poolId, mpValue, txOpt)
+      await tx.wait()
+      console.log(tx)
+      setMpVal('')
+      fetchContractData()
+      getCollections()
+      successMsg('Transaction has been completed successfuly')
+      setLoading(false)
+    } catch (e) {
       setLoading(false)
       console.log(e)
     }
@@ -147,27 +186,71 @@ export function Home() {
 
 
   const handleOpen = (id) => {
-    if(id === 1) {
+    if (id === 1) {
       handleOpenGoldModal()
-    } 
-    if(id === 2) {
+    }
+    if (id === 2) {
       handleOpenBitCoinModal()
-    } 
-    if(id === 4) {
+    }
+    if (id === 4) {
       handleOpenMiscModal()
-    } 
+    }
 
+  }
+
+  const updateMarketPrice = (pid) => {
+    setPoolId(pid)
+    setUpdateMpModal(!updateMpModal)
+  }
+
+  const getCollections = async () => {
+    try {
+      const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active`)
+      const collections = res.data.data
+      if (collections.length > 0) {
+        const collectionData = await Promise.all(collections.map(async (item) => {
+          const contract = new ethers.Contract(item.attributes.contract_address, nft_ci, provider)
+          const stcontract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, provider)
+          let stakingPoolLength = await stcontract.poolLength()
+          stakingPoolLength = parseInt(stakingPoolLength.toString())
+          if (stakingPoolLength > 0) {
+            for (let i = 0; i < stakingPoolLength; i++) {
+              let pool = await stcontract.poolInfo(i)
+              if (pool.nftAddress.toLowerCase() === item.attributes.contract_address.toLowerCase()) {
+                item.pid = i
+                item.marketPrice = ethers.utils.formatUnits(pool.cost, 6)
+              }
+            }
+          }
+          let totalSupply = await contract.maxSupply()
+          totalSupply = parseFloat(totalSupply.toString())
+          let cost = await contract.cost()
+          cost = ethers.utils.formatUnits(cost, 6)
+          cost = parseFloat(cost)
+          const totalValue = totalSupply * cost
+          item.totalSupply = totalSupply
+          item.totalValue = totalValue
+          item.floorPrice = cost
+          return item
+        }))
+        updateCollections(collectionData)
+      }
+
+    } catch (e) {
+      console.log(e)
+    }
   }
 
 
   useEffect(() => {
     fetchContractData()
+    getCollections()
   }, [])
 
 
   return (
     <div className="mt-12">
-      {loading && (<LoadingComponent />)}
+      {loading && (<LoadingComponent msg='Waiting for transaction...' />)}
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
         {statisticsCardsData.map(({ icon, title, footer, update, id, ...rest }) => (
           <StatisticsCard
@@ -223,22 +306,7 @@ export function Home() {
                 <strong>30 done</strong> this month
               </Typography> */}
             </div>
-            <Menu placement="left-start">
-              <MenuHandler>
-                <IconButton size="sm" variant="text" color="blue-gray">
-                  <EllipsisVerticalIcon
-                    strokeWidth={3}
-                    fill="currenColor"
-                    className="h-6 w-6"
-                  />
-                </IconButton>
-              </MenuHandler>
-              <MenuList>
-                <MenuItem>Action</MenuItem>
-                <MenuItem>Another Action</MenuItem>
-                <MenuItem>Something else here</MenuItem>
-              </MenuList>
-            </Menu>
+
           </CardHeader>
           <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
             <table className="w-full min-w-[640px] table-auto">
@@ -248,7 +316,9 @@ export function Home() {
                     "NFT Collections",
                     "Total Value",
                     "Total Supply",
-                    "Update",
+                    "Floor Price",
+                    "Market Price",
+                    "Action",
                   ].map((el) => (
                     <th
                       key={el}
@@ -256,7 +326,7 @@ export function Home() {
                     >
                       <Typography
                         variant="small"
-                        className="text-[11px] font-medium uppercase text-blue-gray-400"
+                        className="text-[11px] text-center font-medium uppercase text-blue-gray-400"
                       >
                         {el}
                       </Typography>
@@ -265,32 +335,28 @@ export function Home() {
                 </tr>
               </thead>
               <tbody>
-                {projectsTableData.map(
-                  ({ img, name, totalValue, totalSupply }, key) => {
-                    const className = `py-3 px-5 ${
-                      key === projectsTableData.length - 1
-                        ? ""
-                        : "border-b border-blue-gray-50"
-                    }`;
+                {state.Collections.map(
+                  ({ id, attributes: { name }, totalSupply, totalValue, floorPrice, marketPrice, pid }, key) => {
+                    const className = `py-3 px-5 ${key === state.Collections.length - 1
+                      ? ""
+                      : "border-b border-blue-gray-50"
+                      }`;
 
                     return (
                       <tr key={name}>
                         <td className={className}>
-                          <div className="flex items-center gap-4">
-                            {/* <Avatar src={img} alt={name} size="sm" /> */}
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-bold"
-                            >
-                              {name}
-                            </Typography>
-                          </div>
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-bold text-center"
+                          >
+                            {name}
+                          </Typography>
                         </td>
                         <td className={className}>
                           <Typography
                             variant="small"
-                            className="text-xs font-medium text-blue-gray-600"
+                            className="text-xs text-center font-medium text-blue-gray-600"
                           >
                             {totalValue}
                           </Typography>
@@ -298,13 +364,29 @@ export function Home() {
                         <td className={className}>
                           <Typography
                             variant="small"
-                            className="text-xs font-medium text-blue-gray-600"
+                            className="text-xs text-center font-medium text-blue-gray-600"
                           >
                             {totalSupply}
                           </Typography>
                         </td>
                         <td className={className}>
-                          <div className="w-10/12">
+                          <Typography
+                            variant="small"
+                            className="text-xs text-center font-medium text-blue-gray-600"
+                          >
+                            USDT {floorPrice}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography
+                            variant="small"
+                            className="text-xs text-center font-medium text-blue-gray-600"
+                          >
+                            USDT {marketPrice}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <div className="flex items-center justify-center">
                             <Menu placement="left-start">
                               <MenuHandler>
                                 <IconButton
@@ -320,17 +402,10 @@ export function Home() {
                                 </IconButton>
                               </MenuHandler>
                               <MenuList>
-                                <MenuItem>Action</MenuItem>
-                                <MenuItem>Another Action</MenuItem>
-                                <MenuItem>Something else here</MenuItem>
+                                <MenuItem onClick={() => updateMarketPrice(pid)}>Update Market Price</MenuItem>
                               </MenuList>
                             </Menu>
-                            {/* <Progress
-                              value={completion}
-                              variant="gradient"
-                              color={completion === 100 ? "green" : "blue"}
-                              className="h-1"
-                            /> */}
+
                           </div>
                         </td>
                       </tr>
@@ -402,6 +477,7 @@ export function Home() {
       <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} val={goldVal} setVal={setGoldVal} submit={submitGold} />
       <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} />
       <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} />
+      <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} />
     </div>
   );
 }

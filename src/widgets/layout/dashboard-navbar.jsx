@@ -1,4 +1,4 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Navbar,
   Typography,
@@ -28,12 +28,21 @@ import {
 import logo from "../../../public/img/logo.png";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import auth from "../../auth/auth";
 
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
+  const navigate = useNavigate()
+
+
+  const handleLogout = () => {
+    auth.clearAppStorage()
+    navigate('/')
+
+  }
 
   return (
     <Navbar
@@ -56,11 +65,12 @@ export function DashboardNavbar() {
           </h1>
         </div>
         <div className="flex items-center justify-between">
-          <Link to="/auth/sign-in" className="mr-5">
+          <div className="mr-5">
             <Button
               variant="text"
               color="blue-gray"
               className="hidden items-center gap-1 px-4 xl:flex"
+              onClick={handleLogout}
             >
               <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
               Sign Out
@@ -69,10 +79,11 @@ export function DashboardNavbar() {
               variant="text"
               color="blue-gray"
               className="grid xl:hidden"
+              onClick={handleLogout}
             >
               <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
             </IconButton>
-          </Link>
+          </div>
           <ConnectButton
             accountStatus={{
               smallScreen: "avatar",
