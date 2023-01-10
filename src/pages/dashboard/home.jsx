@@ -320,7 +320,7 @@ export function Home() {
                     "NFT Collections",
                     "Total Value",
                     "Total Supply",
-                    "Floor Price",
+                    "Start Price",
                     "Market Price",
                     "Action",
                   ].map((el) => (

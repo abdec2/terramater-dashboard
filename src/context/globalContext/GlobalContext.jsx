@@ -61,14 +61,13 @@ export const GlobalProvider = ({ children }) => {
         const goldReserve = await tokenContract._getGoldReserves()
         const btcReserve = await tokenContract._getBitcoinReserves()
         const miscReserve = await tokenContract._getMiscReserves()
-        const nftPrice = await stakingContract.totNftPrice()
-        const naturaPrice = await tokenContract.getNaturaPrice(nftPrice.toString())
+        const naturaPrice = await tokenContract.getNaturaPrice()
         console.log(goldReserve.toString(), btcReserve.toString(), miscReserve.toString())
 
         updateGoldReserve(goldReserve.toString())
         updateBitcoinReserve(btcReserve.toString())
         updateMiscReserve(miscReserve.toString())
-        updateNaturaPrice((parseFloat(naturaPrice.toString()) / 100))
+        updateNaturaPrice((parseFloat(naturaPrice.toString()) / Math.pow(10,6)))
 
     }
 
