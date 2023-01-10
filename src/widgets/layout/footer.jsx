@@ -10,7 +10,7 @@ export function Footer() {
   return (
     <footer className="py-2">
       <div className="flex w-full flex-wrap items-center justify-center gap-6 px-2 md:justify-between">
-        <Typography variant="small" className="font-normal text-inherit">
+        {/* <Typography variant="small" className="font-normal text-inherit">
           &copy; {year} powered by{" "}
           <a
             href={brandLink}
@@ -19,7 +19,7 @@ export function Footer() {
           >
             {brandName}
           </a>{" "}
-        </Typography>
+        </Typography> */}
         {/* <ul className="flex items-center gap-4">
           {routes.map(({ name, path }) => (
             <li key={name}>

@@ -84,6 +84,7 @@ export function Home() {
       setLoading(false)
     } catch (e) {
       setLoading(false)
+      errorMsg('Something went wrong.')
       console.log(e)
     }
   }
@@ -113,6 +114,7 @@ export function Home() {
       setLoading(false)
     } catch (e) {
       setLoading(false)
+      errorMsg('Something went wrong')
       console.log(e)
     }
   }
@@ -143,6 +145,7 @@ export function Home() {
       setLoading(false)
     } catch (e) {
       setLoading(false)
+      errorMsg('Something went wrong')
       console.log(e)
     }
   }
@@ -175,6 +178,7 @@ export function Home() {
       setLoading(false)
     } catch (e) {
       setLoading(false)
+      errorMsg('Something went wrong')
       console.log(e)
     }
   }
@@ -205,7 +209,7 @@ export function Home() {
 
   const getCollections = async () => {
     try {
-      const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active`)
+      const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active&filters[feature]=true`)
       const collections = res.data.data
       if (collections.length > 0) {
         const collectionData = await Promise.all(collections.map(async (item) => {
