@@ -155,25 +155,25 @@ export function Home() {
     }
   }
 
-  const submitMp = async () => {
+  const submitMp = async (pid, marketPrice) => {
     try {
       
       if (!isConnected) {
         openConnectModal()
         return
       }
-      if (mpVal === '') {
-        errorMsg('Please enter valid Amount!')
-        return
-      }
+      // if (mpVal === '') {
+      //   errorMsg('Please enter valid Amount!')
+      //   return
+      // }
       setLoading(true)
       const contract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, signer)
-      const mpValue = ethers.utils.parseUnits(mpVal, 6)
-      const estimateGas = await contract.estimateGas.set(poolId, mpValue)
+      const mpValue = ethers.utils.parseUnits(marketPrice.toString(), 6)
+      const estimateGas = await contract.estimateGas.set(pid, mpValue)
       const txOpt = {
         gasLimit: estimateGas.toString()
       }
-      const tx = await contract.set(poolId, mpValue, txOpt)
+      const tx = await contract.set(pid, mpValue, txOpt)
       await tx.wait()
       console.log(tx)
       setMpVal('')
@@ -250,6 +250,12 @@ export function Home() {
     setUpdateMpModal(!updateMpModal)
   }
 
+  const getMarketPrice = async (collectionId) => {
+    const res = await axios.get(`${CONFIG.BASE_URI}/api/transactions?filters[collection]=${collectionId}&sort[0]=publishedAt:desc&sort[1]=price:asc`)
+    const data = res.data.data
+    return data
+  }
+
   const getCollections = async () => {
     try {
       const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active&filters[feature]=true`)
@@ -268,6 +274,12 @@ export function Home() {
                 item.marketPrice = ethers.utils.formatUnits(pool.cost, 6)
               }
             }
+          }
+          const tradeData = await getMarketPrice(item.id);
+          if(tradeData.length > 0) {
+            item.ltp = tradeData[0].attributes.price
+          } else {
+            item.ltp = 0
           }
           let totalSupply = await contract.maxSupply()
           totalSupply = parseFloat(totalSupply.toString())
@@ -365,6 +377,7 @@ export function Home() {
                     "Total Supply",
                     "Start Price",
                     "Market Price",
+                    "Last Trade Price",
                     "Action",
                   ].map((el) => (
                     <th
@@ -383,7 +396,7 @@ export function Home() {
               </thead>
               <tbody>
                 {state.Collections.map(
-                  ({ id, attributes: { name }, totalSupply, totalValue, floorPrice, marketPrice, pid }, key) => {
+                  ({ id, attributes: { name }, totalSupply, totalValue, floorPrice, marketPrice, pid, ltp }, key) => {
                     const className = `py-3 px-5 ${key === state.Collections.length - 1
                       ? ""
                       : "border-b border-blue-gray-50"
@@ -433,6 +446,14 @@ export function Home() {
                           </Typography>
                         </td>
                         <td className={className}>
+                          <Typography
+                            variant="small"
+                            className="text-xs text-center font-medium text-blue-gray-600"
+                          >
+                            USDT {ltp}
+                          </Typography>
+                        </td>
+                        <td className={className}>
                           <div className="flex items-center justify-center">
                             <Menu placement="left-start">
                               <MenuHandler>
@@ -449,7 +470,7 @@ export function Home() {
                                 </IconButton>
                               </MenuHandler>
                               <MenuList>
-                                <MenuItem onClick={() => updateMarketPrice(pid)}>Update Market Price</MenuItem>
+                                <MenuItem onClick={() => submitMp(pid, ltp)}>Update Market Price</MenuItem>
                               </MenuList>
                             </Menu>
 
@@ -524,7 +545,7 @@ export function Home() {
       <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} val={goldVal} setVal={setGoldVal} submit={submitGold} txtLabel="Amount in USD"/>
       <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} txtLabel="Amount in BTC"/>
       <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} txtLabel="Amount in USD"/>
-      <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} txtLabel="Amount in USDT"/>
+      {/* <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} txtLabel="Amount in USDT"/> */}
       <UpdateModal open={openOtherNaturaModal} handleOpen={handleOpenOtherNaturaModal} title={'Update Other Natura Released'} val={otherNaturaVal} setVal={setOtherNaturaVal} submit={submitOtherNaturaReleased} txtLabel="Enter Natura Tokens" />
       
     </div>
