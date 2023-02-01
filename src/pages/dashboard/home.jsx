@@ -43,14 +43,19 @@ const MySwal = withReactContent(Swal)
 export function Home() {
   const { fetchContractData, state, updateCollections } = useContext(GlobalContext)
   const [loading, setLoading] = useState(false)
+
   const [openGoldModal, setOpenGoldModal] = useState(false);
   const [openBitCoinModal, setOpenBitcoinModal] = useState(false);
   const [openMiscModal, setOpenMiscModal] = useState(false);
+  const [openOtherNaturaModal, setOpenOtherNaturaModal] = useState(false);
   const [updateMpModal, setUpdateMpModal] = useState(false);
+
   const [goldVal, setGoldVal] = useState('')
   const [btcVal, setBtcVal] = useState('')
   const [miscVal, setMiscVal] = useState('')
   const [mpVal, setMpVal] = useState('')
+  const [otherNaturaVal, setOtherNaturaVal] = useState('')
+
   const [poolId, setPoolId] = useState('')
   const { address, isConnected } = useAccount()
   const { data: signer } = useSigner()
@@ -101,11 +106,11 @@ export function Home() {
       }
       setLoading(true)
       const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
-      const estimateGas = await contract.estimateGas._setBitcoinReserves(btcVal)
+      const estimateGas = await contract.estimateGas._setBitcoinReserves(ethers.utils.parseEther(btcVal))
       const txOpt = {
         gasLimit: estimateGas.toString()
       }
-      const tx = await contract._setBitcoinReserves(btcVal, txOpt)
+      const tx = await contract._setBitcoinReserves(ethers.utils.parseEther(btcVal), txOpt)
       await tx.wait()
       console.log(tx)
       setBtcVal('')
@@ -183,10 +188,44 @@ export function Home() {
     }
   }
 
+  const submitOtherNaturaReleased = async () => {
+    try {
+      
+      if (!isConnected) {
+        openConnectModal()
+        return
+      }
+      if (otherNaturaVal === '') {
+        errorMsg('Please enter valid Amount!')
+        return
+      }
+      setLoading(true)
+      const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+      const otherNatVal = ethers.utils.parseEther(otherNaturaVal)
+      const estimateGas = await contract.estimateGas._setOtherNaturaReleased(otherNatVal)
+      const txOpt = {
+        gasLimit: estimateGas.toString()
+      }
+      const tx = await contract._setOtherNaturaReleased(otherNatVal, txOpt)
+      await tx.wait()
+      console.log(tx)
+      setOtherNaturaVal('')
+      fetchContractData()
+      getCollections()
+      successMsg('Transaction has been completed successfuly')
+      setLoading(false)
+    } catch (e) {
+      setLoading(false)
+      errorMsg('Something went wrong')
+      console.log(e)
+    }
+  }
+
 
   const handleOpenGoldModal = () => setOpenGoldModal(!openGoldModal);
   const handleOpenBitCoinModal = () => setOpenBitcoinModal(!openBitCoinModal);
   const handleOpenMiscModal = () => setOpenMiscModal(!openMiscModal);
+  const handleOpenOtherNaturaModal = () => setOpenOtherNaturaModal(!openOtherNaturaModal);
 
 
   const handleOpen = (id) => {
@@ -198,6 +237,10 @@ export function Home() {
     }
     if (id === 4) {
       handleOpenMiscModal()
+    }
+
+    if (id === 5) {
+      handleOpenOtherNaturaModal()
     }
 
   }
@@ -255,7 +298,7 @@ export function Home() {
   return (
     <div className="mt-12">
       {loading && (<LoadingComponent msg='Waiting for transaction...' />)}
-      <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-3">
         {statisticsCardsData.map(({ icon, title, footer, update, id, ...rest }) => (
           <StatisticsCard
             key={title}
@@ -478,10 +521,12 @@ export function Home() {
           </CardBody>
         </Card> */}
       </div>
-      <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} val={goldVal} setVal={setGoldVal} submit={submitGold} />
-      <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} />
-      <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} />
-      <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} />
+      <UpdateModal open={openGoldModal} handleOpen={handleOpenGoldModal} title={'Update Gold Reserves'} val={goldVal} setVal={setGoldVal} submit={submitGold} txtLabel="Amount in USD"/>
+      <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} txtLabel="Amount in BTC"/>
+      <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} txtLabel="Amount in USD"/>
+      <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} txtLabel="Amount in USDT"/>
+      <UpdateModal open={openOtherNaturaModal} handleOpen={handleOpenOtherNaturaModal} title={'Update Other Natura Released'} val={otherNaturaVal} setVal={setOtherNaturaVal} submit={submitOtherNaturaReleased} txtLabel="Enter Natura Tokens" />
+      
     </div>
   );
 }

@@ -16,6 +16,12 @@ export const AppReducer = (state, action) => {
                 ...state,
                 MiscReserve: action.payload
             }
+
+        case 'UPDATE_OTHER_NATURA_RELEASED':
+            return {
+                ...state,
+                otherNaturaReleased: action.payload
+            }
         
         case 'UPDATE_NATURA_PRICE':
             return {

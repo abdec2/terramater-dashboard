@@ -22,9 +22,8 @@ export function StatisticsCard({ color, icon, title, value, footer, id, data }) 
           {title}
         </Typography>
         <Typography variant="h4" color="blue-gray">
-          $
           {
-            (id === 1) ? data.GoldReserve : (id === 2) ? data.BitcoinReserve : (id === 3) ? data.NaturaPrice : (id === 4) ? data.MiscReserve : '0.00'
+            (id === 1) ? '$ '+ data.GoldReserve : (id === 2) ? 'BTC ' + data.BitcoinReserve : (id === 3) ? '$ ' + data.NaturaPrice : (id === 4) ? '$ ' + data.MiscReserve : (id === 5) ? 'NATURA ' + data.otherNaturaReleased : '0.00'
           }
         </Typography>
       </CardBody>

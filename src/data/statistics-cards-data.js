@@ -45,6 +45,15 @@ export const statisticsCardsData = [
     footer: {},
     update: true
   },
+  {
+    id: 5,
+    color: "yellow",
+    icon: CircleStackIcon,
+    title: "Other Natura Released",
+    value: "0.0",
+    footer: {},
+    update: true
+  },
 ];
 
 export default statisticsCardsData;

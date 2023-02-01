@@ -11,6 +11,7 @@ const initialState = {
     BitcoinReserve: null,
     MiscReserve: null, 
     NaturaPrice: null,
+    otherNaturaReleased: null,
     Collections: []
 }
 
@@ -48,6 +49,13 @@ export const GlobalProvider = ({ children }) => {
         })
     }
 
+    const updateOtherNaturaReleased = (amount) => {
+        dispatch({
+            type: 'UPDATE_OTHER_NATURA_RELEASED',
+            payload: amount
+        })
+    }
+
     const updateCollections = (collections) => {
         dispatch({
             type: 'UPDATE_COLLECTIONS',
@@ -61,12 +69,15 @@ export const GlobalProvider = ({ children }) => {
         const goldReserve = await tokenContract._getGoldReserves()
         const btcReserve = await tokenContract._getBitcoinReserves()
         const miscReserve = await tokenContract._getMiscReserves()
+        const otherNaturaReleased = await tokenContract._getOtherNaturaReleased()
         const naturaPrice = await tokenContract.getNaturaPrice()
+
         console.log(goldReserve.toString(), btcReserve.toString(), miscReserve.toString())
 
         updateGoldReserve(goldReserve.toString())
-        updateBitcoinReserve(btcReserve.toString())
+        updateBitcoinReserve(ethers.utils.formatEther(btcReserve.toString()))
         updateMiscReserve(miscReserve.toString())
+        updateOtherNaturaReleased(ethers.utils.formatEther(otherNaturaReleased))
         updateNaturaPrice((parseFloat(naturaPrice.toString()) / Math.pow(10,6)))
 
     }
@@ -79,6 +90,7 @@ export const GlobalProvider = ({ children }) => {
                 updateBitcoinReserve,
                 updateMiscReserve,
                 updateNaturaPrice,
+                updateOtherNaturaReleased,
                 fetchContractData,
                 updateCollections
             }

@@ -6,13 +6,13 @@ import {
     DialogBody,
     DialogFooter,
   } from "@material-tailwind/react";
-const UpdateModal = ({open, handleOpen, title, val, setVal, submit}) => {
+const UpdateModal = ({open, handleOpen, title, val, setVal, submit, txtLabel}) => {
   return (
     <Dialog open={open} handler={handleOpen}>
       <DialogHeader>{title}</DialogHeader>
       <DialogBody divider>
         <div className="w-full">
-            <Input value={val} onChange={(e) => setVal(e.target.value)} label="Amount in USD" required />
+            <Input value={val} onChange={(e) => setVal(e.target.value)} label={txtLabel} required />
         </div>
       </DialogBody>
       <DialogFooter>
