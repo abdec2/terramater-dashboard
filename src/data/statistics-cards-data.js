@@ -47,7 +47,7 @@ export const statisticsCardsData = [
   },
   {
     id: 5,
-    color: "yellow",
+    color: "orange",
     icon: CircleStackIcon,
     title: "Other Natura Released",
     value: "0.0",
