@@ -34,6 +34,11 @@ export const AppReducer = (state, action) => {
                 ...state,
                 Collections: action.payload
             }
+        case 'UPDATE_STAKING_REWARDS':
+            return {
+                ...state,
+                stakingRewardsClaimed: action.payload
+            }
         default:
             return state;
     };

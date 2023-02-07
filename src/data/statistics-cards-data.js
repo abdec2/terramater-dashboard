@@ -54,6 +54,15 @@ export const statisticsCardsData = [
     footer: {},
     update: true
   },
+  {
+    id: 6,
+    color: "purple",
+    icon: CircleStackIcon,
+    title: "Staking Rewards Claimed",
+    value: "0.0",
+    footer: {},
+    update: false
+  },
 ];
 
 export default statisticsCardsData;

@@ -12,6 +12,7 @@ const initialState = {
     MiscReserve: null, 
     NaturaPrice: null,
     otherNaturaReleased: null,
+    stakingRewardsClaimed: null,
     Collections: []
 }
 
@@ -63,6 +64,13 @@ export const GlobalProvider = ({ children }) => {
         })
     }
 
+    const updateStakingRewardsClaimed = (amount) => {
+        dispatch({
+            type: 'UPDATE_STAKING_REWARDS',
+            payload: amount
+        })
+    }
+
     const fetchContractData = async () => {
         const stakingContract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, provider)
         const tokenContract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, provider)
@@ -71,6 +79,7 @@ export const GlobalProvider = ({ children }) => {
         const miscReserve = await tokenContract._getMiscReserves()
         const otherNaturaReleased = await tokenContract._getOtherNaturaReleased()
         const naturaPrice = await tokenContract.getNaturaPrice()
+        const stakingRewards = await stakingContract.totalRewardsClaimed()
 
         console.log(goldReserve.toString(), btcReserve.toString(), miscReserve.toString())
 
@@ -79,7 +88,7 @@ export const GlobalProvider = ({ children }) => {
         updateMiscReserve(miscReserve.toString())
         updateOtherNaturaReleased(ethers.utils.formatEther(otherNaturaReleased))
         updateNaturaPrice((parseFloat(naturaPrice.toString()) / Math.pow(10,6)))
-
+        updateStakingRewardsClaimed(ethers.utils.formatEther(stakingRewards.toString()))
     }
 
     return (
@@ -92,7 +101,8 @@ export const GlobalProvider = ({ children }) => {
                 updateNaturaPrice,
                 updateOtherNaturaReleased,
                 fetchContractData,
-                updateCollections
+                updateCollections,
+                updateStakingRewardsClaimed
             }
         }
         >
