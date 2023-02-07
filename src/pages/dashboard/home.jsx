@@ -286,7 +286,7 @@ export function Home() {
           let cost = await contract.cost()
           cost = ethers.utils.formatUnits(cost, 6)
           cost = parseFloat(cost)
-          const totalValue = totalSupply * cost
+          const totalValue = (item.marketPrice !== undefined && parseFloat(item.marketPrice) !== 0) ? totalSupply * parseFloat(item.marketPrice) : totalSupply * cost
           item.totalSupply = totalSupply
           item.totalValue = totalValue
           item.floorPrice = cost
