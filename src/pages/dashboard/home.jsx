@@ -36,6 +36,7 @@ import LoadingComponent from "../components/loading";
 import { errorMsg, successMsg } from "../helpers/helpers";
 import axios from "axios";
 import nft_ci from './../config/nft_ci.json'
+import auth from './../../auth/auth'
 
 const MySwal = withReactContent(Swal)
 
@@ -251,14 +252,24 @@ export function Home() {
   }
 
   const getMarketPrice = async (collectionId) => {
-    const res = await axios.get(`${CONFIG.BASE_URI}/api/transactions?filters[collection]=${collectionId}&sort[0]=publishedAt:desc&sort[1]=price:asc`)
+    const token = auth.getToken()
+    const res = await axios.get(`${CONFIG.BASE_URI}/api/transactions?filters[collection]=${collectionId}&sort[0]=publishedAt:desc&sort[1]=price:asc`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     const data = res.data.data
     return data
   }
 
   const getCollections = async () => {
     try {
-      const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active&filters[feature]=true`)
+      const token = auth.getToken()
+      const res = await axios.get(`${CONFIG.BASE_URI}/api/collections?filters[status]=Active&filters[feature]=true`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       const collections = res.data.data
       if (collections.length > 0) {
         const collectionData = await Promise.all(collections.map(async (item) => {
