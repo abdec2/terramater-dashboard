@@ -5,6 +5,8 @@ import token_ci from '@/pages/config/token_ci.json'
 import staking_ci from '@/pages/config/staking_ci.json'
 import { CONFIG } from "@/pages/config/config";
 import { useProvider } from 'wagmi'
+import axios from "axios";
+import auth from './../../auth/auth'
 
 const initialState = {
     GoldReserve: null,
@@ -12,6 +14,10 @@ const initialState = {
     MiscReserve: null, 
     NaturaPrice: null,
     otherNaturaReleased: null,
+    incentiveProgramReleased: null,
+    rAndDRealeased: null,
+    reserveNaturaReleased: null,
+    teamNaturaReleased: null,
     stakingRewardsClaimed: null,
     Collections: []
 }
@@ -71,6 +77,31 @@ export const GlobalProvider = ({ children }) => {
         })
     }
 
+    const updateIncentiveProgramReleased = (amount) => {
+        dispatch({
+            type: 'UPDATE_INCENTIVE_PROGRAM_RELEASED',
+            payload: amount
+        })
+    }
+    const updateRAndDReleased = (amount) => {
+        dispatch({
+            type: 'UPDATE_R&D_RELEASED',
+            payload: amount
+        })
+    }
+    const updateReserveNaturaReleased = (amount) => {
+        dispatch({
+            type: 'UPDATE_RESERVE_NATURA_RELEASED',
+            payload: amount
+        })
+    }
+    const updateTeamNaturaReleased = (amount) => {
+        dispatch({
+            type: 'UPDATE_TEAM_NATURA_RELEASED',
+            payload: amount
+        })
+    }
+
     const fetchContractData = async () => {
         const stakingContract = new ethers.Contract(CONFIG.STAKING_CONTRACT, staking_ci, provider)
         const tokenContract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, provider)
@@ -80,15 +111,38 @@ export const GlobalProvider = ({ children }) => {
         const otherNaturaReleased = await tokenContract._getOtherNaturaReleased()
         const naturaPrice = await tokenContract.getNaturaPrice()
         const stakingRewards = await stakingContract.totalRewardsClaimed()
-
-        console.log(goldReserve.toString(), btcReserve.toString(), miscReserve.toString())
+       
+        const token = auth.getToken()
+        let attributes ={}
+        try {
+            const getRes = await axios.get(`${CONFIG.BASE_URI}/api/natura-balances`, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              })
+            //   console.log("getRes",getRes.data.data[0])
+              attributes = getRes.data.data[0].attributes
+            
+        } catch (error) {
+            console.log("error", error)
+        }
+        const incentiveProgramReleased = attributes["incentive_program_released"]
+        const rAndDReleased = attributes["rnd_release"]
+        const reserveNaturaReleased = attributes["reserve_natura_released"]
+        const teamNaturaReleased = attributes["team_natura_released"]
+       
+        // console.log(goldReserve.toString(), btcReserve.toString(), miscReserve.toString())
 
         updateGoldReserve(goldReserve.toString())
         updateBitcoinReserve(ethers.utils.formatEther(btcReserve.toString()))
         updateMiscReserve(miscReserve.toString())
         updateOtherNaturaReleased(ethers.utils.formatEther(otherNaturaReleased))
         updateNaturaPrice((parseFloat(naturaPrice.toString()) / Math.pow(10,6)))
-        updateStakingRewardsClaimed(ethers.utils.formatEther(stakingRewards.toString()))
+        updateStakingRewardsClaimed(Number(ethers.utils.formatEther(stakingRewards.toString())).toFixed(3))
+        updateIncentiveProgramReleased((incentiveProgramReleased).toFixed(2))
+        updateRAndDReleased((rAndDReleased).toFixed(2))
+        updateReserveNaturaReleased((reserveNaturaReleased).toFixed(2))
+        updateTeamNaturaReleased((teamNaturaReleased).toFixed(2))
     }
 
     return (
@@ -100,6 +154,10 @@ export const GlobalProvider = ({ children }) => {
                 updateMiscReserve,
                 updateNaturaPrice,
                 updateOtherNaturaReleased,
+                updateIncentiveProgramReleased,
+                updateRAndDReleased,
+                updateReserveNaturaReleased,
+                updateTeamNaturaReleased,
                 fetchContractData,
                 updateCollections,
                 updateStakingRewardsClaimed

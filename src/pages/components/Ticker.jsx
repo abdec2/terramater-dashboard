@@ -5,7 +5,10 @@ const Ticker = () => {
     useEffect(() => {
         const widget = document.querySelector('#coinmarketcap-widget-marquee')
         const widgetContainer = document.querySelector('#widget-container')
+       if(widget){
         widgetContainer.appendChild(widget)
+       }
+       
 
     }, [])
 

@@ -39,6 +39,26 @@ export const AppReducer = (state, action) => {
                 ...state,
                 stakingRewardsClaimed: action.payload
             }
+            case 'UPDATE_INCENTIVE_PROGRAM_RELEASED':
+                return {
+                    ...state,
+                    incentiveProgramReleased: action.payload
+                }
+                case 'UPDATE_R&D_RELEASED':
+                    return {
+                        ...state,
+                        rAndDRealeased: action.payload
+                    }
+                    case 'UPDATE_RESERVE_NATURA_RELEASED':
+                        return {
+                            ...state,
+                            reserveNaturaReleased: action.payload
+                        }
+                        case 'UPDATE_TEAM_NATURA_RELEASED':
+                            return {
+                                ...state,
+                                teamNaturaReleased: action.payload
+                            }    
         default:
             return state;
     };

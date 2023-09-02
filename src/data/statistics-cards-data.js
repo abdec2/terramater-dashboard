@@ -16,7 +16,7 @@ export const statisticsCardsData = [
     title: "Gold Reserve",
     value: "0.0",
     footer: {},
-    update: true
+    update: true,
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ export const statisticsCardsData = [
     title: "Bitcoin Reserve",
     value: "0.0",
     footer: {},
-    update: true
+    update: true,
   },
   {
     id: 3,
@@ -34,7 +34,7 @@ export const statisticsCardsData = [
     title: "Natura Token Price",
     value: "0.0",
     footer: {},
-    update: false
+    update: false,
   },
   {
     id: 4,
@@ -43,17 +43,17 @@ export const statisticsCardsData = [
     title: "Miscellaneous Reserve",
     value: "0.0",
     footer: {},
-    update: true
+    update: true,
   },
-  {
-    id: 5,
-    color: "orange",
-    icon: CircleStackIcon,
-    title: "Other Natura Released",
-    value: "0.0",
-    footer: {},
-    update: true
-  },
+  // {
+  //   id: 5,
+  //   color: "orange",
+  //   icon: CircleStackIcon,
+  //   title: "Other Natura Released",
+  //   value: "0.0",
+  //   footer: {},
+  //   update: true,
+  // },
   {
     id: 6,
     color: "purple",
@@ -61,7 +61,43 @@ export const statisticsCardsData = [
     title: "Staking Rewards Claimed",
     value: "0.0",
     footer: {},
-    update: false
+    update: false,
+  },
+  {
+    id: 7,
+    color: "orange",
+    icon: CircleStackIcon,
+    title: "Team Natura released",
+    value: "0.0",
+    footer: {},
+    update: true,
+  },
+  {
+    id: 8,
+    color: "light-green",
+    icon: CircleStackIcon,
+    title: "R&D Natura released",
+    value: "0.0",
+    footer: {},
+    update: true,
+  },
+  {
+    id: 9,
+    color: "gray",
+    icon: CircleStackIcon,
+    title: "Reserve Natura released",
+    value: "0.0",
+    footer: {},
+    update: true,
+  },
+  {
+    id: 10,
+    color: "amber",
+    icon: CircleStackIcon,
+    title: "Incentive program Natura",
+    value: "0.0",
+    footer: {},
+    update: true,
   },
 ];
 

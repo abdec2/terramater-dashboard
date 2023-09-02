@@ -49,21 +49,29 @@ export function Home() {
   const [openBitCoinModal, setOpenBitcoinModal] = useState(false);
   const [openMiscModal, setOpenMiscModal] = useState(false);
   const [openOtherNaturaModal, setOpenOtherNaturaModal] = useState(false);
+ 
+  const [openTeamNaturaModal, setOpenTeamNaturaModal] = useState(false);
+  const [openRAndDNaturaModal, setOpenRAndDNaturaModal] = useState(false);
+  const [openReserveNaturaModal, setOpenReserveNaturaModal] = useState(false);
+  const [openIncentiveNaturaModal, setOpenIncentiveNaturaModal] = useState(false);
+  
   const [updateMpModal, setUpdateMpModal] = useState(false);
-
   const [goldVal, setGoldVal] = useState('')
   const [btcVal, setBtcVal] = useState('')
   const [miscVal, setMiscVal] = useState('')
   const [mpVal, setMpVal] = useState('')
   const [otherNaturaVal, setOtherNaturaVal] = useState('')
-
+  const [teamVal, setTeamVal] = useState('')
+  const [rAndDVal, setRAndDVal] = useState('')
+  const [reserveVal, setReserveVal] = useState('')
+  const [incentiveVal, setIncentiveVal] = useState('')
   const [poolId, setPoolId] = useState('')
   const { address, isConnected } = useAccount()
   const { data: signer } = useSigner()
   const { openConnectModal } = useConnectModal()
   const provider = useProvider()
 
-  console.log(state)
+  // console.log(state)
 
   const submitGold = async () => {
     try {
@@ -189,32 +197,126 @@ export function Home() {
     }
   }
 
-  const submitOtherNaturaReleased = async () => {
+  // const submitOtherNaturaReleased = async () => {
+  //   try {
+      
+  //     if (!isConnected) {
+  //       openConnectModal()
+  //       return
+  //     }
+  //     if (otherNaturaVal === '') {
+  //       errorMsg('Please enter valid Amount!')
+  //       return
+  //     }
+  //     setLoading(true)
+  //     const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+  //     const otherNatVal = ethers.utils.parseEther(otherNaturaVal)
+  //     const estimateGas = await contract.estimateGas._setOtherNaturaReleased(otherNatVal)
+  //     const txOpt = {
+  //       gasLimit: estimateGas.toString()
+  //     }
+  //     const tx = await contract._setOtherNaturaReleased(otherNatVal, txOpt)
+  //     await tx.wait()
+  //     console.log(tx)
+  //     setOtherNaturaVal('')
+  //     fetchContractData()
+  //     getCollections()
+  //     successMsg('Transaction has been completed successfuly')
+  //     setLoading(false)
+  //   } catch (e) {
+  //     setLoading(false)
+  //     errorMsg('Something went wrong')
+  //     console.log(e)
+  //   }
+  // }
+
+  const submitOtherNaturaReleased = async (mode) => {
+    console.log("mode", mode)
     try {
       
       if (!isConnected) {
         openConnectModal()
         return
       }
-      if (otherNaturaVal === '') {
+      let val;
+      let attribute;
+      if(mode === "team"){
+        val = teamVal
+        attribute = "team_natura_released"
+      }else if(mode === "r&d"){
+        val = rAndDVal
+        attribute = "rnd_release"
+      }else if(mode === "reserve"){
+        val = reserveVal
+        attribute = "reserve_natura_released"
+      }else if(mode === "incentive"){
+        val = incentiveVal
+        attribute = "incentive_program_released"
+      }
+      if (val === '') {
         errorMsg('Please enter valid Amount!')
         return
       }
       setLoading(true)
-      const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
-      const otherNatVal = ethers.utils.parseEther(otherNaturaVal)
-      const estimateGas = await contract.estimateGas._setOtherNaturaReleased(otherNatVal)
+      const token = auth.getToken()
+      
+        const getRes = await axios.get(`${CONFIG.BASE_URI}/api/natura-balances`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        const getData = getRes.data.data[0].attributes[attribute]
+        let id = getRes.data.data[0].id
+        // console.log("data", getRes.data.data[0])
+        let total = Number(val) + getData
+        const postRes = await axios.put(`${CONFIG.BASE_URI}/api/natura-balances/${1}`,
+        {
+          "data": {
+            id,
+            [attribute] : total
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+   })
+        const postData = postRes.data.data.attributes[attribute]
+        let totalVal=0
+if(postData === total){
+   let allAttr = postRes.data.data.attributes
+   for (const [key, value] of Object.entries(allAttr)) {
+    if(key !== "updatedAt" && key !== "publishedAt" && key !== "createdAt"){
+      totalVal += value;
+    }
+  
+  }
+
+try {
+   const contract = new ethers.Contract(CONFIG.TOKEN_ADDRESS, token_ci, signer)
+      const Val = ethers.utils.parseEther(totalVal.toString())
+      const estimateGas = await contract.estimateGas._setOtherNaturaReleased(Val)
       const txOpt = {
         gasLimit: estimateGas.toString()
       }
-      const tx = await contract._setOtherNaturaReleased(otherNatVal, txOpt)
+      const tx = await contract._setOtherNaturaReleased(Val, txOpt)
       await tx.wait()
       console.log(tx)
       setOtherNaturaVal('')
+      setRAndDVal('')
+      setIncentiveVal('')
+      setTeamVal('')
+      setReserveVal('')
       fetchContractData()
       getCollections()
       successMsg('Transaction has been completed successfuly')
       setLoading(false)
+} catch (error) {
+  setLoading(false)
+  errorMsg('Something went wrong')
+  console.log(error)
+}
+}
     } catch (e) {
       setLoading(false)
       errorMsg('Something went wrong')
@@ -222,12 +324,14 @@ export function Home() {
     }
   }
 
-
   const handleOpenGoldModal = () => setOpenGoldModal(!openGoldModal);
   const handleOpenBitCoinModal = () => setOpenBitcoinModal(!openBitCoinModal);
   const handleOpenMiscModal = () => setOpenMiscModal(!openMiscModal);
   const handleOpenOtherNaturaModal = () => setOpenOtherNaturaModal(!openOtherNaturaModal);
-
+  const handleOpenTeamNaturaModal = () => setOpenTeamNaturaModal(!openTeamNaturaModal);
+  const handleOpenRAndDNaturaModal = () => setOpenRAndDNaturaModal(!openRAndDNaturaModal);
+  const handleOpenReserveNaturaModal = () => setOpenReserveNaturaModal(!openReserveNaturaModal);
+  const handleOpenIncentiveNaturaModal = () => setOpenIncentiveNaturaModal(!openIncentiveNaturaModal);
 
   const handleOpen = (id) => {
     if (id === 1) {
@@ -239,9 +343,21 @@ export function Home() {
     if (id === 4) {
       handleOpenMiscModal()
     }
-
     if (id === 5) {
       handleOpenOtherNaturaModal()
+    }
+
+    if (id === 7) {
+      handleOpenTeamNaturaModal()
+    }
+    if (id === 8) {
+      handleOpenRAndDNaturaModal()
+    }
+    if (id === 9) {
+      handleOpenReserveNaturaModal()
+    }
+    if (id === 10) {
+      handleOpenIncentiveNaturaModal()
     }
 
   }
@@ -313,11 +429,14 @@ export function Home() {
 
 
   useEffect(() => {
-    fetchContractData()
-    getCollections()
+    if( fetchContractData){
+      fetchContractData()
+      getCollections()
+    }
+   
   }, [])
 
-
+if(state !== undefined){
   return (
     <div className="mt-12">
       {loading && (<LoadingComponent msg='Waiting for transaction...' />)}
@@ -406,7 +525,7 @@ export function Home() {
                 </tr>
               </thead>
               <tbody>
-                {state.Collections.map(
+                {state && state.Collections.map(
                   ({ id, attributes: { name }, totalSupply, totalValue, floorPrice, marketPrice, pid, ltp }, key) => {
                     const className = `py-3 px-5 ${key === state.Collections.length - 1
                       ? ""
@@ -557,10 +676,17 @@ export function Home() {
       <UpdateModal open={openBitCoinModal} handleOpen={handleOpenBitCoinModal} title={'Update Bitcoin Reserves'} val={btcVal} setVal={setBtcVal} submit={submitBtc} txtLabel="Amount in BTC"/>
       <UpdateModal open={openMiscModal} handleOpen={handleOpenMiscModal} title={'Update Miscellaneous Reserves'} val={miscVal} setVal={setMiscVal} submit={submitMisc} txtLabel="Amount in USD"/>
       {/* <UpdateModal open={updateMpModal} handleOpen={updateMarketPrice} title={'Update Market Price'} val={mpVal} setVal={setMpVal} submit={submitMp} txtLabel="Amount in USDT"/> */}
-      <UpdateModal open={openOtherNaturaModal} handleOpen={handleOpenOtherNaturaModal} title={'Update Other Natura Released'} val={otherNaturaVal} setVal={setOtherNaturaVal} submit={submitOtherNaturaReleased} txtLabel="Enter Natura Tokens" />
-      
+      {/* <UpdateModal open={openOtherNaturaModal} handleOpen={handleOpenOtherNaturaModal} title={'Update Other Natura Released'} val={otherNaturaVal} setVal={setOtherNaturaVal} submit={submitOtherNaturaReleased} txtLabel="Enter Natura Tokens" /> */}
+                                                                                                                                                                   
+      <UpdateModal open={openTeamNaturaModal} handleOpen={handleOpenTeamNaturaModal} title={'Update Team Natura Released'} val={teamVal} setVal={setTeamVal} submit={()=>submitOtherNaturaReleased("team")} txtLabel="Enter Natura Tokens" />
+      <UpdateModal open={openRAndDNaturaModal} handleOpen={handleOpenRAndDNaturaModal} title={'Update R&D Natura Released'} val={rAndDVal} setVal={setRAndDVal} submit={()=>submitOtherNaturaReleased("r&d")} txtLabel="Enter Natura Tokens" />
+      <UpdateModal open={openReserveNaturaModal} handleOpen={handleOpenReserveNaturaModal} title={'Update Reserve Natura Released'} val={reserveVal} setVal={setReserveVal} submit={()=>submitOtherNaturaReleased("reserve")} txtLabel="Enter Natura Tokens" />
+      <UpdateModal open={openIncentiveNaturaModal} handleOpen={handleOpenIncentiveNaturaModal} title={'Update Incentive Program Natura'} val={incentiveVal} setVal={setIncentiveVal} submit={()=>submitOtherNaturaReleased("incentive")} txtLabel="Enter Natura Tokens" />
+     
     </div>
   );
+}
+
 }
 
 export default Home;
